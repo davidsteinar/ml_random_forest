@@ -10,6 +10,8 @@ parser = argparse.ArgumentParser()
 set_arg = parser.add_argument_group('Settings')
 set_arg.add_argument('--dataname', type=str, default='iris.csv')
 set_arg.add_argument('--numtrees', type=int, default=500)
+set_arg.add_argument('--isreg', type=bool, default=False)
+set_arg.add_argument('--pcol', type=int)
 
 args = parser.parse_args()
 
@@ -18,13 +20,14 @@ df = pd.read_csv(args.dataname)
 
 bag = bagging(df, args.numtrees)
 
-forrest = Forrest()
-oob_errors []
+# grow the forrest
+forrest = Forrest(df, args.pcol, args.isreg)
 
 # make the trees, for each iter calc oob error
+oob_errors []
 for i in range(len(bag)):
-    forrest.add(bag[i][0], bag[i][1])
-    oob_errors.append(forrest.oob())
+    forrest.add_tree(bag[i])
+    oob_errors.append(forrest.oob_error())
 
 
 # plot num trees against oob error

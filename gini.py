@@ -4,9 +4,9 @@ import pandas as pd
 import numpy as np
 from random import shuffle
 
-def gini_index(df):
+def gini_index(df, predict):
 
-    d_class = df.iloc[:,-1].astype("category")
+    d_class = df.iloc[:, k].astype("category")
 
     count = 0
     prob = 0
