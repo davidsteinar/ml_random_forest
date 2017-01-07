@@ -4,7 +4,6 @@ import numpy as np
 import pandas as pd
 from bagging import *
 
-
 # Predict is an int that specifies the column of the prediction
 # value.
 def randomIndices(df, predict, m):
@@ -26,20 +25,16 @@ def randomIndices(df, predict, m):
             features.append(feature_indx)
         if(len(features) == m):
             done = True
-    features.append(predict)
     return np.asarray(features)
-
-
-def randomFeature(df, predict, m):
-    # pick features at random
-    indx = randomIndices(df, predict, m)
-    # removes the predict class from indx list, since it is always last
-    cols = indx[:len(indx)-1]
-    return [df.iloc[:, indx], cols]
 
 
 def testRandomFeature():
     df = pd.read_csv('iris.csv')
     bag = bagging(df, 5)
     print (df)
-    print(randomFeature(bag[0][0], 2, 2))
+    print(randomIndices(bag[0][0], 4, 2))
+
+
+    for indx, row in df.iterrows():
+        print(df.iloc[indx,:][1])
+        print(len(df))
