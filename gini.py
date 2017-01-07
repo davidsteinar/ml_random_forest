@@ -27,6 +27,6 @@ def gini_index(df):
 
 
 def testGini():
-    df = pd.read_csv('iris.csv')
+    df = pd.read_csv('datasets/iris.csv')
     gini = gini_index(df)
     print("gini index =", gini)
