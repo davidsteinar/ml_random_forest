@@ -33,11 +33,13 @@ def randomIndices(df, predict, m):
 def randomFeature(df, predict, m):
     # pick features at random
     indx = randomIndices(df, predict, m)
-    return [df.iloc[:, indx], indx]
+    # removes the predict class from indx list, since it is always last
+    cols = indx[:len(indx)-1]
+    return [df.iloc[:, indx], cols]
 
 
 def testRandomFeature():
     df = pd.read_csv('iris.csv')
     bag = bagging(df, 5)
     print (df)
-    print(randomFeature(bag[0][0], 4, 2))
+    print(randomFeature(bag[0][0], 2, 2))
