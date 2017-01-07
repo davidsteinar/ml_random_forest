@@ -10,6 +10,7 @@ parser = argparse.ArgumentParser()
 set_arg = parser.add_argument_group('Settings')
 set_arg.add_argument('--dataname', type=str, default='iris.csv')
 set_arg.add_argument('--numtrees', type=int, default=500)
+set_arg.add_argument('--predcol', type=int)
 
 args = parser.parse_args()
 
