@@ -12,7 +12,7 @@ def gini_index(df, predict):
     prob = 0
     total = 0
 
-    d_class.cat.codes.align
+    #d_class.cat.codes.align
 
     for i in range(d_class.cat.codes[len(d_class)-1]+1):
         for j in range(len(d_class)-1):
