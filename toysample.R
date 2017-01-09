@@ -1,19 +1,29 @@
-library(tidyverse)
-library(randomForest)
+library(caret)
+library("adabag")
 
-df <- read_csv('ShipData.csv')
-df$VoyageId <- NULL
+set.seed(5499)
+df <- read.csv('datasets/iris.csv')
+df$Species <- as.factor(df$Species)
 
-sub <- sample(nrow(df), floor(nrow(df) * 0.8))
-set.seed(5434)
-training <- df[sub, ]
-testing  <- df[-sub,]
+#bootstrap sample
+trainIndex <- createDataPartition(iris$Species, p = .8, 
+                                  list = FALSE, 
+                                  times = 1)
+training_set <- df[trainIndex,]
+testing_set  <- df[-trainIndex,]
 
-model <- randomForest(training$ShaftPower ~ .,data=training[-6])
+#Random forest model 
+rf_model <- train(Species ~., data=training_set,
+                  method = 'rf')
+rf_prediction <- predict(rf_model,testing_set)
 
-testing$PredictedShaftPower <- predict(model,testing[-6])
+rf_error <- 1 - sum(rf_prediction == testing_set$Species)/nrow(testing_set)
+cat(sprintf("random forest error: %f \n", rf_error))
 
-plt <- ggplot(testing,aes(ShaftPower,PredictedShaftPower)) + geom_point() + geom_smooth(method='lm')
+#adaboost model
+adaboost_model <- boosting(Species ~ ., data = training_set, mfinal = 10,
+                           control = rpart.control(maxdepth = 1))
+adaboost_prediciton <- predict.boosting(adaboost_model, newdata = testing_set)
 
-print(plt)
-print(model)
+cat(sprintf("adaboost error: %f",adaboost_prediciton$error))
+
