@@ -45,6 +45,9 @@ def gini_split(df,column_ids,predict):
     best_split = split_values[best_index]
     df_l = df[df.ix[:,best_feature]<best_split]
     df_r = df[df.ix[:,best_feature]>=best_split]
+    
+    if sum(gini_values) < 0.001:
+        best_feature = -1
 
     return best_feature,best_split, df_l,df_r
 
