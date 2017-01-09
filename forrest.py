@@ -3,17 +3,16 @@ from tree import *
 
 class Forrest():
 
-    def __init__(self, df, predcol, isRegression):
+    def __init__(self, df, predcol, isreg):
         self.trees = []
-        self.reg = isRegression
+        self.isreg = isreg
         self.pcol = predcol
-        self.df = df
+        self.orgdf = df
 
     def add_tree(self, data):
         df = data[0]
         oob_indx = data[1]
-
-        tree = Dtree(self, oob_indx, predcol, is_reg)
+        tree = Dtree(self, oob_indx, predcol, self.isreg)
         tree.grow(df)
         self.trees.append(tree)
 
