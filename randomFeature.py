@@ -4,18 +4,21 @@ import numpy as np
 import pandas as pd
 from bagging import *
 
-# Predict is an int that specifies the column of the prediction
-# value.
-def randomIndices(df, predict, m):
+'''
+Assumes the dataset is stripped of  unecessary info. pcol is an int that
+specifies  the column  of  the prediction  values. m  is  the number  of
+features that we want. Returns a list of indices pertaining to features.
+'''
+def rand_indx(df, pcol, m):
 
-    # one variable in df is predicted value
+    # one variable in df is predictive
     assert(m < df.shape[1])
 
-    done = False
     features = []
     used = np.zeros(df.shape[1])
-    used[predict] = 1
+    used[pcol] = 1
 
+    done = False
     # pick random indices, check that they are unique
     # and not the predicted variable
     while(not done):
@@ -28,12 +31,13 @@ def randomIndices(df, predict, m):
     return np.asarray(features)
 
 
-def testRandomFeature():
-    df = pd.read_csv('iris.csv')
-    bag = bagging(df, 5)
-    print (df)
-    print(randomIndices(bag[0][0], 4, 2))
+def testing():
+    df = pd.read_csv('./datasets/iris.csv')
 
+    # 5 bootstaps, with size of 5 rows
+    bag = bagging(df, 5, 5)
+    print (df)
+    print(rand_indx(bag[0][0], 4, 2))
 
     for indx, row in df.iterrows():
         print(df.iloc[indx,:][1])

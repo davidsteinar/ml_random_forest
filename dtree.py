@@ -1,23 +1,54 @@
 # Author Hesam Pakdaman
 
-from bagging import *
+from gini_split import *
+from randomFeature import *
+import graphviz as gv
+import time
+
 
 class Dtree():
 
-    def __init__(self, oob_indx, predcol, isreg):
+
+#-----------------------------------------------------------------------
+
+
+
+# INNER CLASS OF NODES
+
+    class Node():
+        def __init__(self, feature, split):
+            self.feature  = feature
+            self.split    = split
+            self.lchild   = None
+            self.rchild   = None
+            self.mode     = None
+            self.isleaf   = False
+
+
+
+#-----------------------------------------------------------------------
+
+
+
+# CONSTRUCTOR FOR DECISION TREE
+
+    def __init__(self, oob_indx, predcol, isreg, m):
         self.root = None
         self.pcol = predcol
         self.isreg = isreg
-        self.isleaf = False
         self.oob_indx = oob_indx
+        self.numfeat = m
+        self.nodes = 0
+        self.timer = 0
 
-        class Node():
-            def __init__(self):
-                self.feature  = None
-                self.split    = None
-                self.lchild   = None
-                self.rchild   = None
-                self.mode     = None
+
+
+
+#-----------------------------------------------------------------------
+
+
+
+# GROWING THE TREE
 
 
     def split_data(self, df):
@@ -25,85 +56,145 @@ class Dtree():
         if (self.isreg):
             return None
         else:
-            rnd_features = randomIndicies(df, predict, m)
+            rnd_features = rand_indx(df, self.pcol, self.numfeat)
             feature, split, df_left, df_right =\
                     gini_split(df, rnd_features, self.pcol)
         return feature, split, df_left, df_right
 
 
-    def make_child(df):
+    def grow_recursion(self, df):
+        self.nodes += 1
 
-        feature, split, df_left, df_right = split_data(df)
-        node = Node(feature, split)
+        start = time.clock()
+        feature, split, df_left, df_right = self.split_data(df)
+        self.timer += time.clock() - start
+
+        node = Dtree.Node(feature, split)
 
         # if the node is not a leaf
         if(feature > -1):
-            node.lchild = make_child(df_left)
-            node.rchild = make_child(df_right)
+            if(not df_left.empty):
+                node.lchild = self.grow_recursion(df_left)
+            if(not df_right.empty):
+                node.rchild = self.grow_recursion(df_right)
 
         # assign value if the node is a leaf
         else:
-            self.mode = self.assign_mode(df)
-            self.isleaf = True
+            node.mode = self.assign_mode(df)
+            node.isleaf = True
         return node
 
 
     def grow(self, df):
-        # best feature and its split, check if for regression
-        if (self.isreg):
-            return
-        else:
-            rnd_features = randomIndicies(self.df, predict, m)
-            feature, split, df_left, df_right =\
-                    gini_split(self.df, rnd_features, self.pcol)
-
-        feature, split, df_left, df_right = split_data(df)
-        self.root = Node(feature, split)
-
-        # if the root is not a leaf
-        if(feature > -1):
-            self.root.lchild  = make_child(left_df)
-            self.root.rchild  = make_child(right_df)
-
-        # assign value if the root is a leaf
-        else:
-            self.mode = self.assign_mode(df)
-            self.isleaf = True
+        start = time.clock()
+        self.root = self.grow_recursion(df)
+        end = time.clock() - start
+        print(self.timer/end)
 
 
-    def rec_pred(node, x):
-        if(node.is_leaf):
-            return node.mode
-        else:
-            if(x.iloc(node.feature) >= node.split):
-                rec_pred(node.rchild, x)
-            else:
-                rec_pred(node.lchild, x)
-
-    def predict(self, x):
-        return rec_pred(self.root, x)
-
-    def error(self, df, predcol):
-        toterr = 0
-        oob_df = df.iloc[self.oob_indx]
-        for i in range(len(oob_df)):
-            pred_val = self.predict(df.iloc[i,:])
-            if (pred_val != oob_df.iloc[i, predcol]):
-                toterr += 1
-        return toterr/len(oob_df)
 
     def assign_mode(self, df):
         if (self.isreg):
             return df.iloc[:, self.pcol].mean(axis=0)
         else:
-            return df.iloc[:, self.pcol].value_counts().max()
+            return df.iloc[:, self.pcol].value_counts().idxmax()
+
+
+
+
+#-----------------------------------------------------------------------
+
+
+
+# PREDICTION
+
+
+    def predict_recursion(self, node, x):
+        if(node.isleaf):
+            return node.mode
+        else:
+            if(x.iloc[node.feature] >= node.split):
+                return self.rec_pred(node.rchild, x)
+            else:
+                return self.rec_pred(node.lchild, x)
+
+
+    def predict(self, x):
+        return self.predict_recursion(self.root, x)
+
+
+
+#-----------------------------------------------------------------------
+
+
+# OOB ERROR
+
+
+    def error(self, df):
+        toterr = 0
+        oob_df = df.iloc[self.oob_indx]
+        for i in range(len(oob_df)):
+            pred_val = self.predict(df.iloc[i,:])
+            if (pred_val != oob_df.iloc[i, self.pcol]):
+                toterr += 1
+        return toterr/len(oob_df)
+
+
+
+
+#-----------------------------------------------------------------------
+
+
+
+# VISUALIZATION
+
+    def make_graph(self, node):
+        parentstr = 'Feature %s \n <= %s' %(str(node.feature), str(node.split))
+
+        if(not node.lchild is None):
+            if(node.lchild.isleaf):
+                lchildstr = str(node.lchild.mode)
+                self.G.node(str(node.lchild), lchildstr)
+            else:
+                lchildstr = 'Feature %s \n <= %s' %(str(node.lchild.feature), str(node.lchild.split))
+                self.make_graph(node.lchild)
+                self.G.node(str(node.lchild), parentstr)
+
+            self.G.edge(str(node), str(node.lchild))
+
+        if(not node.rchild is None):
+            if(node.rchild.isleaf):
+                rchildstr = str(node.rchild.mode)
+                self.G.node(str(node.rchild), rchildstr)
+            else:
+                rchildstr = 'Feature %s \n <= %s' %(str(node.rchild.feature), str(node.rchild.split))
+                self.make_graph(node.rchild)
+                self.G.node(str(node.rchild), parentstr)
+
+            self.G.edge(str(node), str(node.rchild))
+
+    def print_tree(self):
+        self.G = gv.Graph(format='svg')
+        parentstr = 'Feature %s \n <= %s' %(str(self.root.feature), str(self.root.split))
+        self.G.node(str(self.root), parentstr)
+        self.make_graph(self.root)
+        self.G.render(filename='./img/'+str(self))
+
+
+
+#-----------------------------------------------------------------------
+
+
+
 
 def testTree():
     df = pd.read_csv('./datasets/iris.csv')
-    tree = Dtree([0], 4, False)
+    tree = Dtree([0], 4, False, 2)
+    tree.grow(df)
 
-testTree()
-
+    x = pd.Series(np.random.normal(0, 1, size=df.shape[1]))
+    print(tree.predict(x))
+    tree.print_tree()
 
 
 
