@@ -23,6 +23,7 @@ class Dtree():
             self.rchild   = None
             self.mode     = None
             self.isleaf   = False
+            self.featname = None
 
 
 
@@ -40,6 +41,7 @@ class Dtree():
         self.numfeat = m
         self.nodes = 0
         self.timer = 0
+        self.names = None
 
 
 
@@ -51,32 +53,36 @@ class Dtree():
 # GROWING THE TREE
 
 
-    def split_data(self, df):
+    def split_data(self, G,  df):
         # best feature and its split, check if for regression
         if (self.isreg):
             return None
         else:
             rnd_features = rand_indx(df, self.pcol, self.numfeat)
-            feature, split, df_left, df_right =\
-                    gini_split(df, rnd_features, self.pcol)
-        return feature, split, df_left, df_right
+            feature, split, df_left, df_right, G1, G2 =\
+                                    gini_split(G, df, rnd_features, self.pcol)
+        return feature, split, df_left, df_right, G1, G2
 
 
-    def grow_recursion(self, df):
+    def grow_recursion(self, G, df):
         self.nodes += 1
 
         start = time.clock()
-        feature, split, df_left, df_right = self.split_data(df)
+
+        feature, split, df_left, df_right, G1, G2 =\
+                        self.split_data(G, df)
+
         self.timer += time.clock() - start
 
         node = Dtree.Node(feature, split)
+        node.featname = self.names[feature]
 
         # if the node is not a leaf
-        if(feature > -1):
+        if(feature > -1 and not df_left.empty and not df_right.empty):
             if(not df_left.empty):
-                node.lchild = self.grow_recursion(df_left)
+                node.lchild = self.grow_recursion(G1, df_left)
             if(not df_right.empty):
-                node.rchild = self.grow_recursion(df_right)
+                node.rchild = self.grow_recursion(G2, df_right)
 
         # assign value if the node is a leaf
         else:
@@ -86,12 +92,14 @@ class Dtree():
 
 
     def grow(self, df):
-        start = time.clock()
-        self.root = self.grow_recursion(df)
-        end = time.clock() - start
-        print(self.timer/end)
+        self.names = df.columns     # for visualization
+        # start = time.clock()
 
+        G = gini(df.ix[:, self.pcol])
+        self.root = self.grow_recursion(G, df)
 
+        # end = time.clock() - start
+        # print(self.timer)
 
     def assign_mode(self, df):
         if (self.isreg):
@@ -114,9 +122,9 @@ class Dtree():
             return node.mode
         else:
             if(x.iloc[node.feature] >= node.split):
-                return self.rec_pred(node.rchild, x)
+                return self.predict_recursion(node.rchild, x)
             else:
-                return self.rec_pred(node.lchild, x)
+                return self.predict_recursion(node.lchild, x)
 
 
     def predict(self, x):
@@ -149,33 +157,36 @@ class Dtree():
 # VISUALIZATION
 
     def make_graph(self, node):
-        parentstr = 'Feature %s \n <= %s' %(str(node.feature), str(node.split))
+        parentstr = '%s \n <= %s' %(node.featname, str(node.split))
 
-        if(not node.lchild is None):
+        if(node.lchild is not None):
             if(node.lchild.isleaf):
                 lchildstr = str(node.lchild.mode)
                 self.G.node(str(node.lchild), lchildstr)
             else:
-                lchildstr = 'Feature %s \n <= %s' %(str(node.lchild.feature), str(node.lchild.split))
+                lchildstr = '%s \n <= %s' %(node.lchild.featname,\
+                        str(node.lchild.split))
+                self.G.node(str(node.lchild), lchildstr)
                 self.make_graph(node.lchild)
-                self.G.node(str(node.lchild), parentstr)
 
             self.G.edge(str(node), str(node.lchild))
 
-        if(not node.rchild is None):
+        if(node.rchild is not None):
             if(node.rchild.isleaf):
                 rchildstr = str(node.rchild.mode)
                 self.G.node(str(node.rchild), rchildstr)
             else:
-                rchildstr = 'Feature %s \n <= %s' %(str(node.rchild.feature), str(node.rchild.split))
+                rchildstr = '%s \n <= %s' %(node.rchild.featname,\
+                        str(node.rchild.split))
+                self.G.node(str(node.rchild), rchildstr)
                 self.make_graph(node.rchild)
-                self.G.node(str(node.rchild), parentstr)
 
             self.G.edge(str(node), str(node.rchild))
 
     def print_tree(self):
         self.G = gv.Graph(format='svg')
-        parentstr = 'Feature %s \n <= %s' %(str(self.root.feature), str(self.root.split))
+        parentstr = '%s \n <= %s' %(self.root.featname,\
+                str(self.root.split))
         self.G.node(str(self.root), parentstr)
         self.make_graph(self.root)
         self.G.render(filename='./img/'+str(self))
