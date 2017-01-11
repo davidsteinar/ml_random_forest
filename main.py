@@ -1,7 +1,7 @@
 # Author Hesam Pakdaman
 
 from bagging import *
-from forrest import *
+from forest import *
 import argparse
 import matplotlib.pyplot as plt
 import numpy as np
@@ -31,8 +31,8 @@ if(not args.isreg and args.conv):
 size = df.shape[0]              # use same size as data for bootstrap
 bag = bagging(df, args.numtrees, size)
 
-# grow forrest
-forrest = Forrest(df, args.pcol, args.isreg, args.numfeat)
+# grow forest
+forest = Forest(df, args.pcol, args.isreg, args.numfeat)
 
 # make the trees, for each iter calc oob error
 oob_errors = []
@@ -40,17 +40,20 @@ oob_trees = []
 start = time.clock()
 print('Starting to grow %s trees' %args.numtrees)
 
+# calculate OOB error every k time
 k = 5
 for i in range(args.numtrees):
-    forrest.add_tree(bag[i])
+    forest.add_tree(bag[i])
 
     # calculate OOB error every k time
     if (i % k is 0 and i is not 0):
         print(str(i) + ' trees grown')
         oob_trees.append(i)
-        oob_errors.append(forrest.oob_error())
+        oob_errors.append(forest.oob_error())
 
-fin = 'Time to grow %d trees: %.2fs ' %(forrest.numtrees, time.clock() - start)
+fin = 'Time to grow %d trees: %.2fs '\
+            %(forest.numtrees, time.clock() - start)
+
 print(fin)
 
 
@@ -72,13 +75,13 @@ Testing only for iris data set
 '''
 def test_predict():
 
-    forrest.trees[0].print_tree()
+    forest.trees[0].print_tree()
 
     print(df.columns)
     x = pd.Series(np.asarray([5.1, 3.5, 1.4, 0.2]))
     print('Test point %s' %str(x.values))
-    print(forrest.trees[0].predict(x))
+    print(forest.trees[0].predict(x))
 
     x = pd.Series(np.asarray([4.3, 2.7, 0.4, 4.2]))
     print('Test point %s' %str(x.values))
-    print(forrest.trees[0].predict(x))
+    print(forest.trees[0].predict(x))

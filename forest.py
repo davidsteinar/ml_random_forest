@@ -1,7 +1,7 @@
 # Author Hesam Pakdaman
 from dtree import *
 
-class Forrest():
+class Forest():
 
     def __init__(self, df, pcol, isreg, numfeat):
         self.isreg = isreg
