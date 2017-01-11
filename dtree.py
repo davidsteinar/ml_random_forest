@@ -41,7 +41,6 @@ class Dtree():
         self.numfeat = m
         self.nodes = 0
         self.timer = 0
-        self.names = None
 
 
 
@@ -75,7 +74,7 @@ class Dtree():
         self.timer += time.clock() - start
 
         node = Dtree.Node(feature, split)
-        node.featname = self.names[feature]
+        node.featname = df.columns[feature]
 
         # if the node is not a leaf
         if(feature > -1 and not df_left.empty and not df_right.empty):
@@ -92,7 +91,6 @@ class Dtree():
 
 
     def grow(self, df):
-        self.names = df.columns     # for visualization
         # start = time.clock()
 
         G = gini(df.ix[:, self.pcol])
@@ -137,15 +135,17 @@ class Dtree():
 
 # OOB ERROR
 
+    def is_oob(self, i):
+        return i in self.oob_indx
 
     def error(self, df):
-        toterr = 0
-        oob_df = df.iloc[self.oob_indx]
-        for i in range(len(oob_df)):
+        total_error = 0
+        oob_df = df.iloc[self.oob_indx, :]      # select oob rows
+        for i in range(oob_df.shape[0]):
             pred_val = self.predict(df.iloc[i,:])
-            if (pred_val != oob_df.iloc[i, self.pcol]):
-                toterr += 1
-        return toterr/len(oob_df)
+            if(pred_val != oob_df.iloc[i, self.pcol]):
+                total_error += 1
+        return total_error / oob_df.shape[0]    # error rate
 
 
 
