@@ -3,6 +3,7 @@
 import numpy as np
 import pandas as pd
 
+
 '''
 Slices the dataframe row-wise and returns a bootstrap sample.
 '''

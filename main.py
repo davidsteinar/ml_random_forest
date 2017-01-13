@@ -8,53 +8,77 @@ import numpy as np
 import pandas as pd
 import time
 
+
+#-----------------------------------------------------------------------
+
+# PARSER
+
+
+
 parser = argparse.ArgumentParser()
+
 set_arg = parser.add_argument_group('Settings')
 set_arg.add_argument('--conv', type=bool, default=True)
 set_arg.add_argument('--dataname', type=str, default='./datasets/iris.csv')
 set_arg.add_argument('--isreg', type=bool, default=False)
 set_arg.add_argument('--numfeat', type=int, default=2)
-set_arg.add_argument('--numtrees', type=int, default=500)
+set_arg.add_argument('--maxfeat', type=int, default=25)
+set_arg.add_argument('--numtrees', type=int, default=100)
 set_arg.add_argument('--pcol', type=int)
+set_arg.add_argument('--frac', type=double, default=0.8)
+
+
 args = parser.parse_args()
+
+
+
+
+#-----------------------------------------------------------------------
+
 
 # make data set
 df = pd.read_csv(args.dataname)
 
-# cat names to int
-if(not args.isreg and args.conv):
-    df.iloc[:, args.pcol] = df.iloc[:, args.pcol].astype('category')
-    cat_columns = df.select_dtypes(['category']).columns
-    df[cat_columns] = df[cat_columns].apply(lambda x: x.cat.codes)
-
+df_train, df_test = process_data(df, args)
 
 size = df.shape[0]              # use same size as data for bootstrap
 bag = bagging(df, args.numtrees, size)
 
-# grow forest
-forest = Forest(df, args.pcol, args.isreg, args.numfeat)
 
-# make the trees, for each iter calc oob error
-oob_errors = []
-oob_trees = []
-start = time.clock()
-print('Starting to grow %s trees' %args.numtrees)
 
-# calculate OOB error every k time
-k = 5
-for i in range(args.numtrees):
-    forest.add_tree(bag[i])
+
+
+#-----------------------------------------------------------------------
+
+# MAKING THE FOREST
+
+# grow forest with F random features
+    forest = Forest(df, F,  args)
+
+    # make the trees, for each iter calc oob error
+    oob_errors = []
+    oob_trees = []
+    oob_numfeat = []
+
+
+    start = time.clock()
+    print('Starting to grow %s trees' %args.numtrees)
 
     # calculate OOB error every k time
-    if (i % k is 0 and i is not 0):
-        print(str(i) + ' trees grown')
-        oob_trees.append(i)
-        oob_errors.append(forest.oob_error())
+    k = 5
+    for i in range(args.numtrees):
+        forest.add_tree(bag[i])
 
-fin = 'Time to grow %d trees: %.2fs '\
-            %(forest.numtrees, time.clock() - start)
+        # calculate OOB error every k time
+        if (i % k is 0 and i is not 0):
+            print(str(i) + ' trees grown')
+            oob_trees.append(i)
+            oob_errors.append(forest.oob_error())
 
-print(fin)
+    fin = 'Time to grow %d trees: %.2fs '\
+                %(forest.numtrees, time.clock() - start)
+
+    print(fin)
 
 
 

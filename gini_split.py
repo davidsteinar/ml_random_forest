@@ -17,33 +17,31 @@ def gini_split(G, df, column_ids, predict):
     if(G < 0.05 or df.shape[0] < 10):
         return -1, None, None, None, None, None
 
-    gini_values = []
-    split_values = []
-
     gini_vals = []
     gini_splits = []
 
     best_gini = None
     total_gini = 0
 
-    for i in range(len(column_ids)):
+    for i in column_ids:
 
         # get feature column
-        x = df.iloc[:, column_ids[i]]
-        sorted_x = x.sort_values()
-        classes = len(x)
+        x = df.iloc[:, i]
+        N = len(x)
 
-        k = 4
+        min_val = x.min()
+        diff = x.max() - min_val
+
+        k = 3
 
         # split into k-1 pieces
         for j in range(1, k):
 
-            indx = j * classes // k
-            split_value = sorted_x.iloc[indx]
-
+            split_value = j * diff // k + min_val
 
             df_l = df[x < split_value]
             df_r = df[x >= split_value]
+
             N1 = len(df_l)
             N2 = len(df_r)
             N = N1 + N2
@@ -57,27 +55,27 @@ def gini_split(G, df, column_ids, predict):
             if(best_gini is None or best_gini < gini_gain):
                 best_gini = gini_gain
                 best_split = split_value
-                best_feature = column_ids[i]
-                total_gini += G1 + G2
+                best_feature = i
+            total_gini += G1 + G2
 
-    df_l = df[df.iloc[:, best_feature] < best_split]
-    df_r = df[df.iloc[:, best_feature] >= best_split]
 
     if (gini_gain <= 0):
-        best_feature = -1
-
-
-    return best_feature, best_split, df_l, df_r, G1, G2
+        return -1, None, None, None, None, None
+    else:
+        df_l = df[df.iloc[:, best_feature] < best_split]
+        df_r = df[df.iloc[:, best_feature] >= best_split]
+        return best_feature, best_split, df_l, df_r, G1, G2
 
 
 
 def test_gini():
-    df = pd.read_csv('./datasets/iris.csv')
+    df = pd.read_csv('./datasets/biopsy.csv')
     pcol = 4
     G = gini(df.ix[:, pcol])
     start = time.clock()
     gini_split(G, df, [2, 0], pcol)
     print(time.clock() - start)
+
 
 
 
