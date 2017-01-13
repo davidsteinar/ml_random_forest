@@ -1,16 +1,18 @@
 # Author: David Steinar, Hesam Pakdaman
 
 import pandas as pd
+import numpy as np
 import time
 
-def gini(df):
-    N = df.count()
-    classes = df.unique()
-    sum = 0
-    for c in classes:
-        p = df[df == c].count() / N
-        sum += p**2
-    return 1 - sum
+
+def gini(f):
+    categories = f.unique()
+    p = np.zeros(len(categories),dtype=int)
+    for value in f:
+        loc = np.where(categories == value)
+        p[loc[0][0]] += 1
+    p = p/len(f)
+    return 1-sum(np.square(p))
 
 def gini_split(G, df, column_ids, predict):
 
