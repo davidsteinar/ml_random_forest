@@ -93,7 +93,7 @@ class Dtree():
     def grow(self, df):
         # start = time.clock()
 
-        G = gini(df.ix[:, self.pcol])
+        G = gini(df.iloc[:, self.pcol])
         self.root = self.grow_recursion(G, df)
 
         # end = time.clock() - start
@@ -136,8 +136,6 @@ class Dtree():
 
 
 # OOB
-
-
     def is_oob(self, i):
         return i in self.oob_indx
 

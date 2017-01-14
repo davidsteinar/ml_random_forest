@@ -3,6 +3,7 @@
 
 from bagging import *
 from forest import *
+from params import *
 from process_data import *
 import argparse
 import matplotlib.pyplot as plt
@@ -19,20 +20,16 @@ import time
 # PARSER
 
 
-
 parser = argparse.ArgumentParser()
 
 set_arg = parser.add_argument_group('Settings')
-set_arg.add_argument('--conv', type=bool, default=False)
-set_arg.add_argument('--dataname', type=str, default='./datasets/sonar.csv')
-set_arg.add_argument('--isreg', type=bool, default=False)
-set_arg.add_argument('--maxfeat', type=int, default=59)
-set_arg.add_argument('--pcol', type=int, default=60)
-set_arg.add_argument('--numtrees', type=int, default=100)
-set_arg.add_argument('--frac', type=float, default=0.9)
+set_arg.add_argument('--file', type=str, default='breast_cancer')
+set_arg.add_argument('--maxfeat', type=int, default=3)
 
+parser = parser.parse_args()
+print(parser.file)
+args = Params(parser)
 
-args = parser.parse_args()
 
 
 
@@ -46,7 +43,6 @@ args = parser.parse_args()
 
 
 df = pd.read_csv(args.dataname)
-print(df.shape)
 assert(args.maxfeat < df.shape[1]) # do not exceed max cols
 
 
@@ -100,14 +96,5 @@ for i in range(1, args.maxfeat+1):
 
 plt.plot(num_features, errors_oob, 'r')
 plt.plot(num_features, errors_test, 'b')
-plt.axis([0, len(num_features), 0, 0.05])
+# plt.axis([0, len(num_features), 0, 0.05])
 plt.show()
-
-
-
-
-
-
-
-
-

@@ -62,6 +62,7 @@ class Forest():
         error = 0
         num_oobs = 0
 
+
         # for every obs in the original dataset
         for i in range(self.orgdf.shape[0]):
 
@@ -75,6 +76,7 @@ class Forest():
                         self.trees[j].predict(self.orgdf.iloc[i, :])
 
                     votes[p_class] += 1      # vote on predicted class
+
 
             # it can happen that none of the trees had oob
             # that is why we check that we at least get one vote

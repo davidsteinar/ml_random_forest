@@ -26,6 +26,7 @@ def bagging(df, k, size):
 
 
 def test_bagging():
-    df = pd.read_csv('./datasets/iris.csv')
-    bag = bagging(df, 5, 5)
-    print(bag[0][0].columns[4])
+    df = pd.read_csv('./datasets/iris.csv').sample(frac=0.1)
+    bag = bagging(df, 1, df.shape[0])
+
+    print(bag[0][0].iloc[0,:])

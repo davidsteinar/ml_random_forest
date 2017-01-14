@@ -9,22 +9,18 @@ def permute(df, pcol):
     sets_perm = []
     # loop over columns
     for i in range(df.shape[1]):
-        if(i is not pcol):
-            values = df.values[:,i]
-            np.random.shuffle(values)
+        if(i != pcol):
             df_perm = df.copy()
-            df_perm.iloc[:,i] = values
+            values = df_perm.iloc[:,i].values
+            np.random.shuffle(values)
             sets_perm.append(df_perm)
     return sets_perm
 
 
 
-
-
-
 def test_perm():
-    df = pd.read_csv('datasets/iris.csv').sample(frac=0.1)
-    pcol = 4
+    df = pd.read_csv('datasets/biopsy.csv').sample(frac=0.01)
+    pcol = 9
     sets_perm = permute(df, pcol)
 
     print(df)
