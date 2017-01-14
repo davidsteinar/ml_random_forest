@@ -38,7 +38,7 @@ class Forest():
 # ERRORS
 
 
-    def error_test(self, df):
+    def error(self, df):
         # for every row, calculate error
         error = 0
 

@@ -16,7 +16,7 @@ def gini(f, classes):
 
 def gini_split(G, df, column_ids, predict, classes):
 
-    if(df.shape[0] < 10):
+    if(G < 0.01 or df.shape[0] <= 10):
         return -1, None, None, None, None, None
 
     best_gini = None
@@ -31,7 +31,7 @@ def gini_split(G, df, column_ids, predict, classes):
         min_val = x.min()
         diff = x.max() - min_val
 
-        k = 4
+        k = 5
 
         # split into k-1 pieces
         for j in range(1, k):
@@ -78,4 +78,3 @@ def test_gini():
     start = time.clock()
     gini_split(G, df, [2, 0], pcol)
     print(time.clock() - start)
-

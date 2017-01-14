@@ -27,7 +27,7 @@ set_arg = parser.add_argument_group('Settings')
 set_arg.add_argument('--file', type=str)
 set_arg.add_argument('--maxfeat', type=int, default=3)
 set_arg.add_argument('--feat', type=int, default=1)
-set_arg.add_argument('--numtrees', type=int, default=1000)
+set_arg.add_argument('--numtrees', type=int, default=100)
 
 parser = parser.parse_args()
 print(parser.file)
@@ -47,7 +47,7 @@ args = Params(parser)
 
 
 orgdf = pd.read_csv(args.dataname)
-orgdf, _ = process_data(orgdf, args)
+# orgdf, _ = process_data(orgdf, args)
 names = orgdf.columns.values           # names of features in data
 assert(args.maxfeat < orgdf.shape[1])  # do not exceed max cols
 size = orgdf.shape[0]                  # size for bootstrap
@@ -69,13 +69,13 @@ start = time.clock()
 for i in range(args.numtrees):
     forest.add_tree(bag[i])
 
+ref_error = forest.error_OOB()
+
 fin = 'Time to grow %d trees with %d features: %.2fs '\
             %(forest.numtrees, args.feat, time.clock() - start)
+
 print(fin)
 
-ref_err = forest.error_OOB()
-print(ref_err)
-print()
 
 
 
@@ -94,7 +94,13 @@ forest.trees[0].print_tree()
 print(orgdf.shape)
 # loop over features and skip predictive column
 for i in range(orgdf.shape[1]-1):
-    df = permute(orgdf, i)
-    forest.orgdf = df
-    print(forest.error_OOB())
+    if(i != args.pcol):
+        df = permute(orgdf, i)
+        forest.orgdf = df
+        error = forest.error_OOB()
+        increased_err.append((error - ref_error) / ref_error)
+        leftout_feat.append(i + 1)
 
+print(increased_err)
+plt.scatter(leftout_feat, increased_err)
+plt.show()
