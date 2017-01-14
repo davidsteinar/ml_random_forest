@@ -24,7 +24,7 @@ class Forest():
         df = data[0]                # bootstrap df
         oob_indx = data[1]          # oob indices
 
-        tree = Dtree(oob_indx, self.numfeat, self.args)
+        tree = Dtree(oob_indx, self.numfeat, self.classes, self.args)
         tree.grow(df)
 
         self.trees.append(tree)     # append to list of trees
@@ -62,7 +62,6 @@ class Forest():
         error = 0
         num_oobs = 0
 
-
         # for every obs in the original dataset
         for i in range(self.orgdf.shape[0]):
 
@@ -86,6 +85,7 @@ class Forest():
                 # class that got majority votes and against true label
                 if(votes.argmax() != self.orgdf.iloc[i, self.pcol]):
                     error += 1
+
 
         return error / num_oobs
 

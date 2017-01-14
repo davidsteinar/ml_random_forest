@@ -5,16 +5,12 @@ import pandas as pd
 import numpy as np
 
 
-def permute(df, pcol):
-    sets_perm = []
+def permute(df, feat):
     # loop over columns
-    for i in range(df.shape[1]):
-        if(i != pcol):
-            df_perm = df.copy()
-            values = df_perm.iloc[:,i].values
-            np.random.shuffle(values)
-            sets_perm.append(df_perm)
-    return sets_perm
+    df_perm = df.copy()
+    values = df_perm.iloc[:,feat].values
+    np.random.shuffle(values)
+    return df_perm
 
 
 

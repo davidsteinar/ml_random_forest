@@ -33,7 +33,7 @@ class Dtree():
 
 # CONSTRUCTOR FOR DECISION TREE
 
-    def __init__(self, oob_indx, F, args):
+    def __init__(self, oob_indx, F, classes, args):
         self.root = None
         self.pcol = args.pcol
         self.isreg = args.isreg
@@ -41,6 +41,7 @@ class Dtree():
         self.numfeat = F
         self.nodes = 0
         self.timer = 0
+        self.classes = classes
 
 
 
@@ -59,7 +60,7 @@ class Dtree():
         else:
             rnd_features = rand_indx(df, self.pcol, self.numfeat)
             feature, split, df_left, df_right, G1, G2 =\
-                                    gini_split(G, df, rnd_features, self.pcol)
+                                    gini_split(G, df, rnd_features, self.pcol, self.classes)
         return feature, split, df_left, df_right, G1, G2
 
 
@@ -77,7 +78,7 @@ class Dtree():
         node.featname = df.columns[feature]
 
         # if the node is not a leaf
-        if(feature > -1 and not df_left.empty and not df_right.empty):
+        if(feature != -1):
             if(not df_left.empty):
                 node.lchild = self.grow_recursion(G1, df_left)
             if(not df_right.empty):
@@ -93,7 +94,7 @@ class Dtree():
     def grow(self, df):
         # start = time.clock()
 
-        G = gini(df.iloc[:, self.pcol])
+        G = gini(df.iloc[:, self.pcol], self.classes)
         self.root = self.grow_recursion(G, df)
 
         # end = time.clock() - start
