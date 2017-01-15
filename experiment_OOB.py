@@ -23,8 +23,10 @@ import time
 parser = argparse.ArgumentParser()
 
 set_arg = parser.add_argument_group('Settings')
-set_arg.add_argument('--file', type=str, default='breast_cancer')
-set_arg.add_argument('--maxfeat', type=int, default=3)
+set_arg.add_argument('--file', type=str, default='sonar')
+set_arg.add_argument('--maxfeat', type=int, default=8)
+set_arg.add_argument('--numtrees', type=int, default=100)
+set_arg.add_argument('--feat', type=int, default=2)
 
 parser = parser.parse_args()
 print(parser.file)
@@ -65,36 +67,37 @@ assert(args.maxfeat < df.shape[1]) # do not exceed max cols
 errors_oob = []
 errors_test = []
 num_features = []
+total_oob =  []
+total_test = []
+
+df_train, df_test = process_data(df, args)
 
 # loop over the the num of features, including maxfeat
-for i in range(1, args.maxfeat+1):
+for t in range(10):
+    for i in range(1, args.maxfeat+1):
 
-    df_train, df_test = process_data(df, args)
-    size = df.shape[0]          # use same size as data for bootstrap
-    bag = bagging(df_train, args.numtrees, size)
+        size = df.shape[0]          # use same size as data for bootstrap
+        bag = bagging(df_train, args.numtrees, size)
 
-    print('Growing %s trees with %s features' %(args.numtrees, i))
-    forest = Forest(df, i,  args)       # make tree with F features
+	#print('Growing %s trees with %s features' %(args.numtrees, i))
+        forest = Forest(df, i,  args)       # make tree with F features
 
-    start = time.clock()
+        start = time.clock()
 
-    # add args.numtrees to the forest
-    for j in range(args.numtrees):
-        forest.add_tree(bag[j])
+	# add args.numtrees to the forest
+        for j in range(args.numtrees):
+            forest.add_tree(bag[j])
 
-    fin = 'Time to grow %d trees with %d features: %.2fs '\
-                %(forest.numtrees, i, time.clock() - start)
-    print(fin)
+        fin = 'Time to grow %d trees with %d features: %.2fs '\
+		%(forest.numtrees, i, time.clock() - start)
+        print(fin)
 
-    # remember OOB/test errors with i num of features
-    num_features.append(i)
-    errors_oob.append(forest.error_OOB())
-    errors_test.append(forest.error_test(df_test))
+	# remember OOB/test errors with i num of features
+        num_features.append(i)
+        errors_oob.append(forest.error_OOB())
+        errors_test.append(forest.error(df_test))
+        
+    total_test.append(error_test)
+    total_oob.append(errors_test)
 
-
-
-
-plt.plot(num_features, errors_oob, 'r')
-plt.plot(num_features, errors_test, 'b')
-# plt.axis([0, len(num_features), 0, 0.05])
-plt.show()
+print(total_test)
