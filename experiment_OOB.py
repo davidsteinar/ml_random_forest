@@ -76,7 +76,7 @@ allinone_test = np.zeros([10,args.maxfeat])
 # loop over the the num of features, including maxfeat
 for t in range(10):
     df_train, df_test = process_data(df, args)
-    for i in range(1, args.maxfeat+1):
+    for i in range(1, args.maxfeat):
 
         size = df.shape[0]          # use same size as data for bootstrap
         bag = bagging(df_train, args.numtrees, size)
@@ -101,5 +101,17 @@ for t in range(10):
 
 np.savetxt("sonar_oob.csv", allinone_oob, delimiter=",")
 np.savetxt("sonar_test.csv", allinone_test, delimiter=",")
+
+x = range(8)
+oob_plot = np.mean(allinone_oob,axis=0)
+test_plot = np.mean(allinone_test,axis=0)
+
+plt.plot(x,oob_plot,label="oob")
+plt.plot(x,test_plot,label="test")
+plt.xlabel('Number of features')
+plt.ylabel("Error percent")
+plt.legend()
+plt.savefig("sonar_oob_experiment.png")
+
 
 
