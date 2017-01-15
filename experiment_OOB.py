@@ -67,13 +67,15 @@ assert(args.maxfeat < df.shape[1]) # do not exceed max cols
 errors_oob = []
 errors_test = []
 num_features = []
-total_oob =  []
-total_test = []
 
-df_train, df_test = process_data(df, args)
+
+allinone_oob = np.zeros([10,args.maxfeat])
+allinone_test = np.zeros([10,args.maxfeat])
+
 
 # loop over the the num of features, including maxfeat
 for t in range(10):
+    df_train, df_test = process_data(df, args)
     for i in range(1, args.maxfeat+1):
 
         size = df.shape[0]          # use same size as data for bootstrap
@@ -94,10 +96,10 @@ for t in range(10):
 
 	# remember OOB/test errors with i num of features
         num_features.append(i)
-        errors_oob.append(forest.error_OOB())
-        errors_test.append(forest.error(df_test))
-        
-    total_test.append(error_test)
-    total_oob.append(errors_test)
+        allinone_oob[t,i] = forest.error_OOB()
+        allinone_test[t,i] = forest.error(df_test)
 
-print(total_test)
+np.savetxt("sonar_oob.csv", allinone_oob, delimiter=",")
+np.savetxt("sonar_test.csv", allinone_test, delimiter=",")
+
+
