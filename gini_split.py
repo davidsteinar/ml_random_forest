@@ -50,7 +50,7 @@ def gini_split(G, df, column_ids, predict, classes):
                 G1 = N1 / N * gini(df_l.iloc[:,predict], classes)
             else:
                 G1 = 0
-            if(not df_l.empty):
+            if(not df_r.empty):
                 G2 = N2 / N * gini(df_r.iloc[:,predict], classes)
             else:
                 G2 = 0

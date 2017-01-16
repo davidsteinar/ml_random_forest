@@ -30,11 +30,11 @@ class Params():
             self.maxfeat = args.maxfeat
             self.pcol = 9
 
-        elif(args.file == 'glass'):
-            self.dataname = './datasets/glass.csv'
+        elif(args.file == 'ecoli'):
+            self.dataname = './datasets/ecoli.csv'
             self.conv = False
             self.maxfeat = args.maxfeat
-            self.pcol = 9
+            self.pcol = 7
 
         elif(args.file == 'diabetes'):
             self.dataname = './datasets/diabetes.csv'
