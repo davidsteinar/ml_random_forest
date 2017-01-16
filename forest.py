@@ -79,13 +79,12 @@ class Forest():
 
             # it can happen that none of the trees had oob
             # that is why we check that we at least get one vote
-            if(sum(votes) != 0):
+            if(np.sum(votes) != 0):
                 num_oobs += 1
 
                 # class that got majority votes and against true label
                 if(votes.argmax() != self.orgdf.iloc[i, self.pcol]):
                     error += 1
-
 
         return error / num_oobs
 
