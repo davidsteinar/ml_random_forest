@@ -38,6 +38,9 @@ args = Params(parser)
 
 
 
+
+
+
 #-----------------------------------------------------------------------
 
 
@@ -61,7 +64,7 @@ bag = bagging(orgdf, args.numtrees, size)
 # GROWING FOREST
 
 
-forest = Forest(orgdf, 1, args)
+forest = Forest(orgdf, 2, args)
 
 print('Growing Forest with %s trees' %(args.numtrees))
 start = time.clock()
@@ -98,9 +101,12 @@ for i in range(orgdf.shape[1]-1):
         df = permute(orgdf, i)
         forest.orgdf = df
         error = forest.error_OOB()
-        increased_err.append((error - ref_error) / ref_error)
+        increased_err.append((error - ref_error) / ref_error * 100)
         leftout_feat.append(i + 1)
 
 print(increased_err)
+plt.xlabel('variable')
+plt.ylabel('increase precent')
 plt.scatter(leftout_feat, increased_err)
+plt.savefig('variable_importance.pdf')
 plt.show()
